@@ -7,7 +7,7 @@ import java.util.function.*;
 public class Driver {
 	
 	public static final String DICT_FILE = "/usr/share/dict/words";
-
+	
 	public static void main(String[] args) {
 		Driver solve = new Driver();
 		System.out.print("How many letters? ");
@@ -20,9 +20,10 @@ public class Driver {
 		Random random = new Random();
 		int guessWord = random.nextInt(solve.dictionary.size());
 		String myGuess = (String) solve.dictionary.toArray()[guessWord];
-
+		System.out.print("0");
+		
 		while (true) {
-			System.out.println(solve.dictionary.size());
+			System.out.println(" / " + solve.dictionary.size());
 			System.out.println("Try this word: " + myGuess);
 			System.out.print("How many correct? ");
 			int correctLetters = 0;
@@ -32,7 +33,6 @@ public class Driver {
 				break;
 			}
 
-
 			if (correctLetters < 0) {
 				solve.removeWord(myGuess);
 			} else if (correctLetters == letterCount) {
@@ -40,10 +40,10 @@ public class Driver {
 			} else if (correctLetters == 0) {
 				solve.removeAllWordsWithCharactersFromWord(myGuess);
 			}
-			if (correctLetters > 0) {
+			if (correctLetters >= 0) {
 				solve.guesses.put(myGuess, correctLetters);
 			}
-
+ 
 			myGuess = solve.thinkNext();
 		}
 
@@ -91,6 +91,7 @@ public class Driver {
 			}
 		}
 
+		
 		Entry<String, Integer> maxWord = null;
 		for (Entry<String, Integer> word : nextGuess.entrySet()) {
 			if ((maxWord == null || maxWord.getValue() < word.getValue()) && !guesses.containsKey(word.getKey())) {
@@ -101,7 +102,18 @@ public class Driver {
 		if (maxWord == null) {
 			Random random = new Random();
 			return (String) dictionary.toArray()[random.nextInt(dictionary.size())];
+		} else {
+			String word = maxWord.getKey();
+			Set<String> dictCopy = new HashSet<>(dictionary);
+			for (int i = 0; i < word.length(); i++) {
+				String sletter = word.substring(i, i+1);
+				Predicate<String> letter = p -> !p.contains(sletter);
+				dictCopy.removeIf(letter);
+			}
+			System.out.println(dictCopy);
 		}
+		System.out.print(nextGuess.size());
+		
 		return maxWord.getKey();
 	}
 
@@ -110,7 +122,10 @@ public class Driver {
 		dictionary.removeIf(isNotCountLetters);
 	}
 
-	class hasRepeatedLetters implements Predicate<String> {
+	void removeRepeatedCharacterWords() {
+		dictionary.removeIf(hasRepeatedLetters);
+	}
+	static class hasRepeatedLetters implements Predicate<String> {
 		@Override
 		public boolean test(String t) {
 			Set<Byte> charSet = new HashSet<>();
@@ -120,9 +135,7 @@ public class Driver {
 			return false;
 		}
 	}
-	void removeRepeatedCharacterWords() {
-		dictionary.removeIf(new hasRepeatedLetters());
-	}
+	static final Predicate<String> hasRepeatedLetters = new hasRepeatedLetters();
 
 	void removeAllWordsWithCharactersFromWord(String word) {
 		for (int i = 0; i < word.length(); i++) {
@@ -143,6 +156,4 @@ public class Driver {
 			dictionary.removeIf(letter);
 		}
 	}
-
-
 }
